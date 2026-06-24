@@ -2,7 +2,8 @@
   "name": "FinControl",
   "short_name": "FinControl",
   "description": "Aplicativo de gestão financeira pessoal completo e intuitivo.",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#10b981",
@@ -10,13 +11,13 @@
   "categories": ["finance", "utilities"],
   "icons": [
     {
-      "src": "/pwa-icon.jpg",
+      "src": "pwa-icon.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/pwa-icon.jpg",
+      "src": "pwa-icon.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "maskable"

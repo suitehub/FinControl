@@ -1,9 +1,9 @@
 const CACHE_NAME = 'fincontrol-v1';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/pwa-icon.jpg'
+  './',
+  'index.html',
+  'manifest.json',
+  'pwa-icon.jpg'
 ];
 
 // Install Event
@@ -65,7 +65,7 @@ self.addEventListener('fetch', (event) => {
           }
           // If it's a navigation request (page refresh), return the index.html cached file
           if (event.request.mode === 'navigate') {
-            return caches.match('/');
+            return caches.match('./') || caches.match('index.html');
           }
         });
       })
