@@ -46,6 +46,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
 
       - name: Upload de Artefatos Compilados (Geral)
         uses: actions/upload-artifact@v4
