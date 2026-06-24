@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom aesthetic scrollbar custom styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Custom Markdown assistant content formatting styling */
+.markdown-body ul {
+  list-style-type: disc !important;
+  padding-left: 1.25rem !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.35rem !important;
+}
+.markdown-body ol {
+  list-style-type: decimal !important;
+  padding-left: 1.25rem !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.35rem !important;
+}
+.markdown-body li {
+  margin-bottom: 0.2rem !important;
+}
+.markdown-body p {
+  margin-bottom: 0.4rem !important;
+  line-height: 1.5 !important;
+}
+.markdown-body p:last-child {
+  margin-bottom: 0 !important;
+}
+.markdown-body strong {
+  font-weight: 700 !important;
+  color: inherit !important;
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+}
+.markdown-body h1 { font-size: 1.1rem !important; }
+.markdown-body h2 { font-size: 1.0rem !important; }
+.markdown-body h3 { font-size: 0.9rem !important; }
+
+

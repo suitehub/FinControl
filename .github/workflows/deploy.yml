@@ -1,0 +1,111 @@
+name: FinControl CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Permite disparar manualmente pelo painel do GitHub
+
+# Permissões necessárias para publicar no GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Garante apenas um deploy simultâneo para evitar conflitos
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Código-fonte
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar Dependências
+        run: npm ci
+
+      - name: Executar Linter (Checagem de Tipos TS)
+        run: npm run lint
+
+      - name: Compilar Aplicação (Vite + Express Bundle)
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload de Artefatos Compilados (Geral)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fincontrol-build
+          path: dist/
+          retention-days: 7
+
+      # Prepara a pasta 'dist' (build do Vite) especificamente para o GitHub Pages
+      - name: Carregar Artefato do GitHub Pages
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+  # Job responsável pelo deploy real no GitHub Pages
+  deploy-pages:
+    needs: build-and-test
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Implantar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # =========================================================================
+  # EXEMPLO DE DEPLOY PARA RENDER (DESCOMENTE E CONFIGURE SE USAR O RENDER)
+  # =========================================================================
+  # deploy-render:
+  #   needs: build-and-test
+  #   if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Disparar Deploy no Render
+  #       run: |
+  #         curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+  # =========================================================================
+  # EXEMPLO DE DEPLOY PARA DOCKER HUB / REGISTRY (DESCOMENTE SE USAR DOCKER)
+  # =========================================================================
+  # deploy-docker:
+  #   needs: build-and-test
+  #   if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Login no Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
+  #
+  #     - name: Build e Push da Imagem Docker
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         push: true
+  #         tags: ${{ secrets.DOCKER_USERNAME }}/fincontrol:latest

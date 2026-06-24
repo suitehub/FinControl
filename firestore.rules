@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reuseable global security helper primitives
+    function isAllowedUser(userId) {
+      return userId == 'single_user' || (request.auth != null && request.auth.uid == userId);
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Model Validation Helpers (Anti-Update-Gap)
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['id', 'userId', 'date', 'description', 'value', 'category', 'type'])
+        && data.keys().size() <= 8
+        && data.id is string && data.id.size() <= 128
+        && isAllowedUser(data.userId)
+        && data.date is string && data.date.size() == 10
+        && data.description is string && data.description.size() <= 500
+        && data.value is number && data.value >= 0
+        && data.category is string && data.category.size() <= 100
+        && data.type is string && (data.type == 'income' || data.type == 'expense')
+        && (!data.keys().contains('dizimoSeparado') || data.dizimoSeparado is bool);
+    }
+
+    function isValidSubscription(data) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'category', 'value', 'currency', 'billingDate', 'autoRenew'])
+        && data.keys().size() == 8
+        && data.id is string && data.id.size() <= 128
+        && isAllowedUser(data.userId)
+        && data.name is string && data.name.size() <= 200
+        && data.category is string && data.category.size() <= 100
+        && data.value is number && data.value >= 0
+        && data.currency is string && (data.currency == 'BRL' || data.currency == 'USD' || data.currency == 'EUR' || data.currency == 'EGP')
+        && data.billingDate is int && data.billingDate >= 1 && data.billingDate <= 31
+        && data.autoRenew is bool;
+    }
+
+    function isValidFixedCost(data) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'value', 'dueDate', 'required'])
+        && data.keys().size() == 6
+        && data.id is string && data.id.size() <= 128
+        && isAllowedUser(data.userId)
+        && data.name is string && data.name.size() <= 200
+        && data.value is number && data.value >= 0
+        && data.dueDate is int && data.dueDate >= 1 && data.dueDate <= 31
+        && data.required is bool;
+    }
+
+    function isValidPatrimonioAccount(data) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'type', 'balance', 'currency'])
+        && data.keys().size() == 6
+        && data.id is string && data.id.size() <= 128
+        && isAllowedUser(data.userId)
+        && data.name is string && data.name.size() <= 200
+        && data.type is string && (data.type == 'corrente' || data.type == 'poupança' || data.type == 'físico' || data.type == 'internacional')
+        && data.balance is number
+        && data.currency is string && (data.currency == 'BRL' || data.currency == 'USD' || data.currency == 'EUR' || data.currency == 'EGP');
+    }
+
+    function isValidPlanningGoal(data) {
+      return data.keys().hasAll(['userId', 'needs', 'leisure', 'emergency', 'investments', 'goals'])
+        && data.keys().size() == 6
+        && isAllowedUser(data.userId)
+        && data.needs is number && data.needs >= 0 && data.needs <= 100
+        && data.leisure is number && data.leisure >= 0 && data.leisure <= 100
+        && data.emergency is number && data.emergency >= 0 && data.emergency <= 100
+        && data.investments is number && data.investments >= 0 && data.investments <= 100
+        && data.goals is number && data.goals >= 0 && data.goals <= 100;
+    }
+
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['id', 'userId', 'role', 'content', 'timestamp'])
+        && data.keys().size() == 5
+        && data.id is string && data.id.size() <= 128
+        && isAllowedUser(data.userId)
+        && data.role is string && (data.role == 'user' || data.role == 'assistant')
+        && data.content is string && data.content.size() <= 5000
+        && data.timestamp is string;
+    }
+
+    // --- Collections Match Blocks ---
+
+    // Transactions
+    match /transactions/{transactionId} {
+      allow get, list: if resource == null || isAllowedUser(resource.data.userId);
+      allow create: if isValidId(transactionId) && request.resource.data.id == transactionId && isValidTransaction(request.resource.data);
+      allow update: if isValidId(transactionId) && (resource == null || isAllowedUser(resource.data.userId)) && isAllowedUser(request.resource.data.userId) && isValidTransaction(request.resource.data);
+      allow delete: if resource == null || isAllowedUser(resource.data.userId);
+    }
+
+    // Subscriptions
+    match /subscriptions/{subscriptionId} {
+      allow get, list: if resource == null || isAllowedUser(resource.data.userId);
+      allow create: if isValidId(subscriptionId) && request.resource.data.id == subscriptionId && isValidSubscription(request.resource.data);
+      allow update: if isValidId(subscriptionId) && (resource == null || isAllowedUser(resource.data.userId)) && isAllowedUser(request.resource.data.userId) && isValidSubscription(request.resource.data);
+      allow delete: if resource == null || isAllowedUser(resource.data.userId);
+    }
+
+    // Fixed Costs
+    match /fixedCosts/{fixedCostId} {
+      allow get, list: if resource == null || isAllowedUser(resource.data.userId);
+      allow create: if isValidId(fixedCostId) && request.resource.data.id == fixedCostId && isValidFixedCost(request.resource.data);
+      allow update: if isValidId(fixedCostId) && (resource == null || isAllowedUser(resource.data.userId)) && isAllowedUser(request.resource.data.userId) && isValidFixedCost(request.resource.data);
+      allow delete: if resource == null || isAllowedUser(resource.data.userId);
+    }
+
+    // Patrimonio Accounts
+    match /patrimonioAccounts/{accountId} {
+      allow get, list: if resource == null || isAllowedUser(resource.data.userId);
+      allow create: if isValidId(accountId) && request.resource.data.id == accountId && isValidPatrimonioAccount(request.resource.data);
+      allow update: if isValidId(accountId) && (resource == null || isAllowedUser(resource.data.userId)) && isAllowedUser(request.resource.data.userId) && isValidPatrimonioAccount(request.resource.data);
+      allow delete: if resource == null || isAllowedUser(resource.data.userId);
+    }
+
+    // Planning Goals (Document ID is the User ID itself)
+    match /planningGoals/{userId} {
+      allow get, list: if userId == 'single_user' || isAllowedUser(userId);
+      allow create: if isAllowedUser(userId) && request.resource.data.userId == userId && isValidPlanningGoal(request.resource.data);
+      allow update: if isAllowedUser(userId) && (resource == null || isAllowedUser(resource.data.userId)) && isAllowedUser(request.resource.data.userId) && isValidPlanningGoal(request.resource.data);
+      allow delete: if isAllowedUser(userId);
+    }
+
+    // Chat Messages
+    match /chatMessages/{messageId} {
+      allow get, list: if resource == null || isAllowedUser(resource.data.userId);
+      allow create: if isValidId(messageId) && request.resource.data.id == messageId && isValidChatMessage(request.resource.data);
+      allow update: if isValidId(messageId) && (resource == null || isAllowedUser(resource.data.userId)) && isAllowedUser(request.resource.data.userId) && isValidChatMessage(request.resource.data);
+      allow delete: if resource == null || isAllowedUser(resource.data.userId);
+    }
+  }
+}

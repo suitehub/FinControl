@@ -1,0 +1,6 @@
+{
+  "name": "FinControl",
+  "description": "Aplicativo de gestão financeira pessoal completo e intuitivo com fluxo financeiro, dízimos, assinaturas recorrentes, gastos fixos, patrimônio consolidado multi-moedas, planejamento sugerido e assistente financeiro IA integrado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

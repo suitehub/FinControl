@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transactions (income and expenses)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "value": { "type": "number" },
+        "category": { "type": "string" },
+        "type": { "type": "string" },
+        "dizimoSeparado": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "date", "description", "value", "category", "type"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "Recurring subscriptions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "value": { "type": "number" },
+        "currency": { "type": "string" },
+        "billingDate": { "type": "number" },
+        "autoRenew": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "name", "category", "value", "currency", "billingDate", "autoRenew"]
+    },
+    "FixedCost": {
+      "title": "FixedCost",
+      "description": "Monthly fixed costs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "value": { "type": "number" },
+        "dueDate": { "type": "number" },
+        "required": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "name", "value", "dueDate", "required"]
+    },
+    "PatrimonioAccount": {
+      "title": "PatrimonioAccount",
+      "description": "Asset account balancing net worth",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "balance": { "type": "number" },
+        "currency": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "type", "balance", "currency"]
+    },
+    "PlanningGoal": {
+      "title": "PlanningGoal",
+      "description": "50/20 budget planning goals",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "needs": { "type": "number" },
+        "leisure": { "type": "number" },
+        "emergency": { "type": "number" },
+        "investments": { "type": "number" },
+        "goals": { "type": "number" }
+      },
+      "required": ["userId", "needs", "leisure", "emergency", "investments", "goals"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "AI assistant chat message history",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "role": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "userId", "role", "content", "timestamp"]
+    }
+  },
+  "firestore": {
+    "transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Transactions collection"
+    },
+    "subscriptions/{subscriptionId}": {
+      "schema": "Subscription",
+      "description": "Subscriptions collection"
+    },
+    "fixedCosts/{fixedCostId}": {
+      "schema": "FixedCost",
+      "description": "Fixed costs collection"
+    },
+    "patrimonioAccounts/{accountId}": {
+      "schema": "PatrimonioAccount",
+      "description": "Asset accounts collection"
+    },
+    "planningGoals/{userId}": {
+      "schema": "PlanningGoal",
+      "description": "Budget planning goals per user"
+    },
+    "chatMessages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Chat message history per user"
+    }
+  }
+}
